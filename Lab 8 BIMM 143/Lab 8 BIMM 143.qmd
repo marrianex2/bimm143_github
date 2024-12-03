@@ -1,0 +1,270 @@
+---
+title: "Lab 8: PCA Mini Project"
+author: "Marriane Allahwerdi (A16902759)"
+format: pdf
+---
+
+It is important to consider scalling your data before analysis such as PCA. 
+
+For example: 
+
+```{r}
+head(mtcars)
+```
+
+```{r}
+colMeans(mtcars)
+```
+
+```{r}
+apply(mtcars, 2, sd)
+```
+
+```{r}
+x <- scale(mtcars)
+head(x)
+```
+
+```{r}
+round(colMeans(x), 2) 
+```
+
+
+
+Unsupervised Learning Analysis of Human Breast Cancer Cells
+
+```{r}
+wisc.df <- read.csv("WisconsinCancer.csv", 
+                        row.names=1)
+  
+head(wisc.df)
+```
+
+```{r}
+diagnosis <- wisc.df[,1]
+table(diagnosis)
+```
+
+Remove the first column `diagnosis` bc it is essentially the “answer” to the question which cell samples are malignant or benign.
+```{r}
+# We can use -1 here to remove the first column
+wisc.data <- wisc.df[,-1]
+head(wisc.data)
+```
+
+```{r}
+dim(wisc.df)
+```
+
+> Q1. How many observations are in this dataset?
+
+There are 569 observations in this dataset. 
+
+```{r}
+nrow(wisc.df)
+```
+
+> Q2. How many of the observations have a malignant diagnosis?
+
+212 observations have a malignant diagnosis. 
+
+```{r}
+table(diagnosis)
+```
+
+
+> Q3. How many variables/features in the data are suffixed with _mean?
+
+10features are suffixed with _mean. 
+
+```{r}
+length(grep("_mean", colnames(wisc.data)))
+```
+
+
+## PCA 
+```{r}
+# Check column means and standard deviations
+colMeans(wisc.data)
+
+apply(wisc.data,2,sd)
+```
+
+```{r}
+# Perform PCA on wisc.data by completing the following code
+wisc.pr <- prcomp(wisc.data, scale=T)
+summary(wisc.pr)
+```
+
+> Q4. From your results, what proportion of the original variance is captured by the first principal components (PC1)?
+
+44.27% of the original variance is captured by PC1. 
+
+> Q5. How many principal components (PCs) are required to describe at least 70% of the original variance in the data?
+
+The first three PCs are required to describe at least 70% of the original variance (cumulative proportion=72%). 
+
+> Q6. How many principal components (PCs) are required to describe at least 90% of the original variance in the data?
+
+The first seven PCs are required to describe at least 90% of the original variance (cumulative proportion=91%).
+
+> Q7. What stands out to you about this plot? Is it easy or difficult to understand? Why?
+
+This plot is very messy and hard to understand. Not much can be intrepreted from this plot alone. 
+
+```{r}
+biplot(wisc.pr)
+```
+
+
+Main "PC score Plot", "PC1 vs PC2 plot" 
+
+```{r}
+attributes(wisc.pr)
+```
+
+```{r}
+head(wisc.pr$x)
+```
+
+```{r}
+plot(wisc.pr$x[,1], wisc.pr$x[,2], col=as.factor(diagnosis), xlab = "PC1", ylab = "PC2")
+```
+
+> Q8. Generate a similar plot for principal components 1 and 3. What do you notice about these plots?
+
+These plots have a distinguishable separation between the malignant and benign observations seen in red and black. These points are slightly closer together than the ones in the previous plot. 
+
+```{r}
+plot(wisc.pr$x[,1], wisc.pr$x[,3],col =as.factor(diagnosis), 
+     xlab = "PC1", ylab = "PC3")
+```
+
+
+```{r}
+# Create a data.frame for ggplot
+df <- as.data.frame(wisc.pr$x)
+df$diagnosis <- diagnosis
+
+# Load the ggplot2 package
+library(ggplot2)
+
+# Make a scatter plot colored by diagnosis
+ggplot(df) + 
+  aes(PC1, PC2, col=diagnosis) + 
+  geom_point()
+```
+Blue = malignant , Red = benign 
+
+
+```{r}
+# Calculate variance of each component
+pr.var <- wisc.pr$sdev^2
+head(pr.var)
+```
+
+```{r}
+# Variance explained by each principal component: pve
+pve <- pr.var / sum(pr.var)
+
+# Plot variance explained for each principal component
+plot(pve, xlab = "Principal Component", 
+     ylab = "Proportion of Variance Explained", 
+     ylim = c(0, 1), type = "o")
+```
+
+> Q9. For the first principal component, what is the component of the loading vector (i.e. wisc.pr$rotation[,1]) for the feature concave.points_mean?
+
+The concave.points_mean for the first PC loading vector is -0.26. This loading vector explains how much this variable affects that position in the first PC. 
+
+```{r}
+concave.points_mean <- wisc.pr$rotation[,1]
+concave.points_mean
+```
+
+> Q10. What is the minimum number of principal components required to explain 80% of the variance of the data?
+
+The minimum number of PCs required to explain 80% os variance is 5 as seen from the data table we generated previously (cumulative variance=84% at PC5). 
+
+
+```{r}
+# Scale the wisc.data data using the "scale()" function
+data.scaled <- scale(wisc.data)
+```
+
+```{r}
+data.dist <- dist(data.scaled)
+```
+
+```{r}
+wisc.hclust <- hclust(data.dist, method = "complete")
+```
+
+> Q11. Using the plot() and abline() functions, what is the height at which the clustering model has 4 clusters?
+
+The height at which the clustering model has 4 clusters is at h=19. 
+
+```{r}
+plot(wisc.hclust)
+abline(h=19, col="red", lty=2)
+```
+
+```{r}
+d <- dist(wisc.pr$x[,1:3])
+hc <- hclust(d, method="ward.D2")
+plot(hc)
+```
+
+```{r}
+grps <- cutree(hc, k=5)
+```
+
+```{r}
+plot(wisc.pr$x, col=grps)
+```
+
+```{r}
+table(grps)
+```
+
+```{r}
+table(diagnosis, grps)
+```
+
+> Q12. Can you find a better cluster vs diagnoses match by cutting into a different number of clusters between 2 and 10?
+
+I changed k into 5 and got what appears to be a better clustering of the data on the graph. 
+
+```{r}
+wisc.hclust.clusters <- cutree(wisc.hclust, k=4)
+wisc.hclust.clusters
+```
+
+```{r}
+table(wisc.hclust.clusters, diagnosis)
+```
+
+> Q13. Which method gives your favorite results for the same data.dist dataset? Explain your reasoning.
+
+I prefer using the "complete" method as it shows the similarity between all observations in the cluster using the largest of similarities, it provides a comprehensive view of the greatest values throughout the entire data. 
+
+```{r}
+hc.complete <- hclust(data.dist, method="complete")
+plot(hc.complete)
+```
+
+```{r}
+wisc.km <- kmeans(wisc.data, centers= 2, nstart= 20)
+```
+
+```{r}
+table(wisc.km$cluster, diagnosis)
+```
+> Q14. How well does k-means separate the two diagnoses? How does it compare to your hclust results?
+
+The kmeans separates the 2 diagnoses very simply into 2 groups as seen above. It provides a much easier way to interpret the data of the sample than the hclust data tables. 
+
+
+
+
+ 

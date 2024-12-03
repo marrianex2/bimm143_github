@@ -1,0 +1,66 @@
+---
+title: "Lab 17"
+author: "Marriane Alahwerdi (A16902759)"
+format: html
+---
+
+## Notes, HW BELOW 
+
+tar -xvf: to untar files 
+gunzip: un zip files
+cd: change dir 
+ 
+The PATH is a special environment variable that stores the location of exe files in UNIX systems. I can print it with "echo $PATH" 
+ we can add it with: 
+ export PATH=$PATH:/my/new/path 
+ 
+ The SRA-TOOLKIT allows us to query and download raw sequencing data from NCBI's SRA database. Key commands include 
+ 
+ prefetch [SRACODE]
+ fasta-dump [SRACODE]
+ 
+ ssh -i "~/Downloads/bimm143_ma.pem" ubuntu@ec2-54-202-82-208.us-west-2.compute.amazonaws.com
+ 
+ls *_quant
+ 
+scp -r -i ~/Downloads/bimm143_ma.pem ubuntu@ec2-18-237-254-37.us-west-2.compute.amazonaws.com:~/*_quant . 
+ 
+ 
+## Downstream analysis
+
+```{r}
+getwd()
+```
+
+```{r}
+print(folders)
+```
+
+```{r}
+print(files)
+```
+```{r}
+file.exists(files)
+```
+
+
+```{r}
+library(tximport)
+
+# Setup the folder and filenames to read
+folders <- dir(pattern = "SRR21568*")
+if (length(folders) == 0) stop("No folders found with pattern 'SRR21568*'.")
+
+samples <- sub("_quant", "", folders)
+files <- file.path(folders, "abundance.h5")
+names(files) <- samples
+
+# Import with tximport
+```
+
+```{r}
+head(txi.kallisto$counts)
+```
+
+
+ 
