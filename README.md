@@ -1,2 +1,2 @@
-# bimm143_github
-Class 19 FA24
+# BIMM143
+Class 19 FA24 at UCSD
