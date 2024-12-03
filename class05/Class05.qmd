@@ -1,0 +1,214 @@
+---
+title: "Class 5: Data Viz ggplot"
+author: "Marriane A. (A16902759)"
+format: pdf
+---
+Questions: 
+
+> Q1. For which phases is data visualization important in our scientific workflows?
+
+All of the above 
+
+> Q2. True or False? The ggplot2 package comes already installed with R?
+
+False 
+
+> Q3. Which plot types are typically NOT used to compare distributions of numeric variables?
+
+Network Graphs 
+
+> Q4. Which statement about data visualization with ggplot2 is incorrect?
+
+ggplot2 is the only way to create plots in R
+
+> Q5. Which geometric layer should be used to create scatter plots in ggplot2?
+
+geom_point()
+
+> Q6. Q. Use the nrow() function to find out how many genes are in this dataset. What is your answer? 
+
+5196
+
+> Q7. Use the colnames() function and the ncol() function on the genes data frame to find out what the column names are (we will need these later) and how many columns there are. How many columns did you find? 
+
+4
+
+> Q8. Use the nrow() function to find out how many genes are in this dataset. What is your answer? 
+
+5196
+
+> Q9. Use the colnames() function and the ncol() function on the genes data frame to find out what the column names are (we will need these later) and how many columns there are. How many columns did you find? 
+
+4
+ 
+> Q10. Use the table() function on the State column of this data.frame to find out how many ‘up’ regulated genes there are. What is your answer? 
+
+127
+
+> Q11. Using your values above and 2 significant figures. What fraction of total genes is up-regulated in this dataset? 
+
+2.44
+
+
+
+## Plotting in R
+
+R has lots of ways to make plots and figures. This includes so called **base** graphics and packages. 
+
+ggplot is the only way to create plots in R 
+
+```{r}
+plot(cars)
+```
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+head(cars)
+```
+
+> Q. How would we plot this dataset with **ggplot2**?
+
+All ggplot figures have at least 3 layers:
+
+-**data** 
+-**aes** (how the data map to the plot)
+-**geoms** (how we draw the plot)
+
+Before I use a new package. I need to download and install it with 'install.packages()' command. But don't install within my quarto document. 
+
+Once a package is installed I can load it up with the 'library()' function. 
+
+```{r}
+# install.packages("ggplot2")
+library(ggplot2)
+ggplot(cars) +
+  aes(x=speed, y=dist) +
+  geom_point()
+```
+
+Key-point: For simple plots (like the one above) ggplot is more verbose (we need to do more typing) but as plots get more complicated ggplot starts to be more clear and simple than base R plot 
+
+```{r}
+p <- save 
+ggplot(cars) +
+  aes(speed, dist) + 
+  geom_point() +
+  geom_smooth(se=FALSE, method="lm") + 
+  labs(title="Stopping distance of old cars",
+       subtitle = "From the in-built cars dataset",
+       x="Speed (MPH)",
+       y="Stopping Distance (ft)", 
+       caption="Dataset:'cars'")
+  theme_bw()
+```
+
+```{r}
+url <- "https://bioboot.github.io/bimm143_S20/class-material/up_down_expression.txt"
+genes <- read.delim(url)
+head(genes)
+```
+```{r}
+nrow(genes)
+colnames(genes)
+ncol(genes)
+```
+```{r}
+table(genes$State)
+
+round (table(genes$State)/nrow(genes)*100, 2 )
+```
+
+```{r}
+ggplot(genes) +
+  aes(x=Condition1, y=Condition2) +
+  geom_point(col="blue")
+```
+```{r}
+p <- ggplot(genes) +
+  aes(x=Condition1, y=Condition2, col=State) +
+  geom_point()
+p
+```
+
+```{r}
+library(ggplot2)
+# install.packages("dplyr")  ## un-comment to install if needed
+library(dplyr)
+
+# File location online
+url <- "https://raw.githubusercontent.com/jennybc/gapminder/master/inst/extdata/gapminder.tsv"
+
+gapminder <- read.delim(url)
+gapminder_2007 <- gapminder %>% filter(year==2007)
+
+ggplot(gapminder_2007) +
+  aes(x=gdpPercap, y=lifeExp) +
+  geom_point(alpha=0.5)
+```
+```{r}
+ggplot(gapminder_2007) +
+  aes(x=gdpPercap, y=lifeExp, color=continent, size=pop) +
+  geom_point(alpha=0.5)
+```
+```{r}
+ggplot(gapminder_2007) + 
+  aes(x = gdpPercap, y = lifeExp, color = pop) +
+  geom_point(alpha=0.8)
+```
+```{r}
+ggplot(gapminder_2007) + 
+  aes(x = gdpPercap, y = lifeExp, size = pop) +
+  geom_point(alpha=0.5)
+```
+> Q. Can you adapt the code you have learned thus far to reproduce our gapminder scatter plot for the year 1957? What do you notice about this plot is it easy to compare with the one for 2007?
+
+```{r}
+gapminder_1957 <- gapminder %>% filter(year==1957)
+
+ggplot(gapminder_1957) + 
+  aes(x = gdpPercap, y = lifeExp, color=continent,
+                 size = pop) +
+  geom_point(alpha=0.7) + 
+  scale_size_area(max_size = 10) 
+```
+```{r}
+gapminder_1957 <- gapminder %>% filter(year==1957 | year==2007)
+
+ggplot(gapminder_1957) + 
+ geom_point(aes(x = gdpPercap, y = lifeExp, color=continent,
+                 size = pop), alpha=0.7) + 
+  scale_size_area(max_size = 10) +
+  facet_wrap(~year)
+```
+
+Bar Charts 
+
+```{r}
+gapminder_top5 <- gapminder %>% 
+  filter(year==2007) %>% 
+  arrange(desc(pop)) %>% 
+  top_n(5, pop)
+
+gapminder_top5
+```
+```{r}
+ggplot(gapminder_top5) + 
+  geom_col(aes(x=country, y=pop))
+```
+```{r}
+ggplot(gapminder_top5) + 
+  geom_col(aes(x = country, y = pop, fill = continent))
+```
+```{r}
+ggplot(gapminder_top5) + 
+  geom_col(aes(x = country, y = pop, fill = lifeExp))
+```
+
+
+
+
+
+
+
